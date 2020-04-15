@@ -119,6 +119,13 @@ class App:
 
     def draw(self):
         pyxel.cls(BACKGROUND_COLOR)
+
+        pyxel.text(
+            SCREEN_WIDTH / 2,
+            SCREEN_HEIGHT / 12,
+            str(self.score),
+            7)
+
         pyxel.circ(self.ball.position.x, self.ball.position.y, BALL_SIZE, 7)
 
         for bat in self.bats:
