@@ -95,6 +95,7 @@ class App:
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.ball = Ball(20, 20, 2, 2)
         self.bats = [Bat(2,10), Bat(SCREEN_WIDTH - 2,10)]
+        self.score = 0
         pyxel.run(self.update, self.draw)
 
     def update(self):
@@ -106,10 +107,15 @@ class App:
         for bat in self.bats:
             bat.update()
             
-            if (bat.hitbox.x1 < self.ball.position.x < bat.hitbox.x2 
+            if (bat.hitbox.x1 < self.ball.position.x < bat.hitbox.x2
             and bat.hitbox.y1 < self.ball.position.y < bat.hitbox.y2):
                 self.ball.velocity.x = -self.ball.velocity.x
-                
+                self.score += 1
+                print(self.score)
+               
+        if (self.ball.position.x < 0 or
+            self.ball.position.x > SCREEN_WIDTH): 
+            pyxel.quit()
 
     def draw(self):
         pyxel.cls(BACKGROUND_COLOR)
