@@ -7,9 +7,15 @@ import random
 
 SCREEN_WIDTH = 255
 SCREEN_HEIGHT = 120
+BACKGROUND_COLOR = 0 # Black (refer supported colors)
 BALL_SIZE = 2
 BALL_SPEED = 2
 BAT_SIZE = 8
+
+class Utils:
+    @staticmethod
+    def randcolor():
+        return random.randrange(1,15,1)
 
 class Vec2:
     def __init__(self,x,y):
@@ -38,29 +44,57 @@ class Ball:
         if self.position.y <= BALL_SIZE:
             self.velocity.y = -self.velocity.y
 
+class HitBox:
+    def __init__(self, x1, y1, x2, y2):
+        self.x1 = x1 # x-coordinate of top left corner
+        self.y1 = y1 # y-coordinate of top left corner
+        self.x2 = x2 # x-coordinate of bottom right corner
+        self.y2 = y2 # y-coordinate of bottom right corner
+
 class Bat:
+    color = 7
+
     def __init__(self,px,py):
-       self.position = Vec2(px,py)
-       self.velocity = 0
+        self.position = Vec2(px,py)
+        self.velocity = 0
+        self.hitbox = HitBox(
+            self.position.x - BAT_SIZE / 4, # top left x coordinate
+            self.position.y - BAT_SIZE, # top left y coordinate
+            self.position.x + BAT_SIZE / 4, # bottom right x coordinate
+            self.position.y + BAT_SIZE,  # bottom right y coordinate
+        )
 
     def update(self):
+        self.position.y += self.velocity
+
+        self.hitbox = HitBox(
+            self.position.x - BAT_SIZE / 4,
+            self.position.y - BAT_SIZE,
+            self.position.x + BAT_SIZE / 4,
+            self.position.y + BAT_SIZE
+        )
+
+        if self.position.y < BAT_SIZE:
+            self.position.y = BAT_SIZE
+            self.velocity = 0
+
+        if self.position.y >= SCREEN_HEIGHT - BAT_SIZE:
+            self.position.y = SCREEN_HEIGHT - BAT_SIZE
+            self.velocity = 0
 
         if pyxel.btnp(pyxel.KEY_W):
-            print("W pressed")
+            Bat.color = Utils.randcolor()
             self.velocity = -2
 
         if pyxel.btnp(pyxel.KEY_S):
-            print("S pressed")
+            Bat.color = Utils.randcolor()
             self.velocity = 2
-
-        self.position.y += self.velocity
-
 
 class App:
     def __init__(self):
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.ball = Ball(20, 20, 2, 2)
-        self.bats = [Bat(10,10), Bat(SCREEN_WIDTH - 10,10)]
+        self.bats = [Bat(2,10), Bat(SCREEN_WIDTH - 2,10)]
         pyxel.run(self.update, self.draw)
 
     def update(self):
@@ -71,20 +105,23 @@ class App:
 
         for bat in self.bats:
             bat.update()
+            
+            if (bat.hitbox.x1 < self.ball.position.x < bat.hitbox.x2 
+            and bat.hitbox.y1 < self.ball.position.y < bat.hitbox.y2):
+                self.ball.velocity.x = -self.ball.velocity.x
+                
 
     def draw(self):
-        pyxel.cls(12)
+        pyxel.cls(BACKGROUND_COLOR)
         pyxel.circ(self.ball.position.x, self.ball.position.y, BALL_SIZE, 7)
 
         for bat in self.bats:
-            print(bat.position.x-BAT_SIZE/4,bat.position.y-BAT_SIZE)
-            print(bat.position.x+BAT_SIZE/4,bat.position.y+BAT_SIZE)
             pyxel.rect(
-                bat.position.x - BAT_SIZE / 4, # top left x coordinate
-                bat.position.y - BAT_SIZE, # top left y coordinate
-                bat.position.x + BAT_SIZE / 4, # bottom right x coordinate
-                bat.position.y + BAT_SIZE,  # bottom right y coordinate
-                random.randrange(0,15,1)
+                bat.hitbox.x1,
+                bat.hitbox.y1,
+                bat.hitbox.x2,
+                bat.hitbox.y2,
+                Bat.color
             )
 
 App()
